@@ -1,5 +1,4 @@
-# This is the file that implements a flask server to do inferences. It's the file that you will modify to
-# implement the scoring for your own algorithm.
+# This is the file that implements a flask server to do inferences. 
 
 import os
 import json
@@ -15,9 +14,11 @@ prefix = '/opt/ml/'
 app = flask.Flask(__name__)
 @app.route('/ping', methods=['GET'])
 def ping():
-    # Check if the classifier was loaded correctly
+    # Check if the predictor was loaded correctly
     try:
         from mindsdb import Predictor
+        # mdb = Predictor(name='test_predictor')
+        # mdb.get_model_data('test_predictor')
         status = 200
     except:
         status = 400
@@ -25,9 +26,7 @@ def ping():
 
 @app.route('/invocations', methods=['POST'])
 def transformation():
-    #get data and make prediction
-    # use the model to make predictions check the model location
-    #TODO: get when params as arguments
+
     result = Predictor(name='home_rentals_price').predict(when={'number_of_rooms': 2,'number_of_bathrooms':1, 'sqft': 1190})
 
     print('The predicted price is ${price} with {conf} confidence'.format(price=result[0]['rental_price'], conf=result[0]['rental_price_confidence']))
