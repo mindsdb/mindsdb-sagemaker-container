@@ -1,20 +1,24 @@
 # Build an image that can do training and inference in SageMaker
 # This is a Python 3 image that uses the nginx, gunicorn, flask stack
 # for serving inferences in a stable way.
-FROM ubuntu:16.04
+FROM ubuntu:18.10
 
+MAINTAINER mindsdb
 
 # 1. Define the packages required for runing mindsdb. 
 RUN apt-get -y update && apt-get install -y --no-install-recommends \
          wget \
-         python3 \
+         build-essential \
+         python3.7 \
+         python3.7-dev \
+         python3-distutils \
          nginx \
          ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. Here we define all python packages we want to include in our environment.
-RUN wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py && \
-    pip install mindsdb flask gevent gunicorn && \
+RUN wget https://bootstrap.pypa.io/get-pip.py && python3.7 get-pip.py && \
+    pip install --upgrade mindsdb flask gevent gunicorn && \
         rm -rf /root/.cache
 
 # 3. Set some environment variables. PYTHONUNBUFFERED keeps Python from buffering our standard
