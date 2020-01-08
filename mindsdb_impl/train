@@ -7,7 +7,6 @@ import json
 import pickle
 import sys
 import traceback
-from mindsdb import Predictor
 import pandas as pd
 
 # These are the paths to where SageMaker mounts interesting things in your container.
@@ -19,8 +18,12 @@ output_path = os.path.join(prefix, 'output')
 model_path = os.path.join(prefix, 'model')
 param_path = os.path.join(prefix, 'input/config/hyperparameters.json')
 
-# This algorithm has a single channel of input data called 'training'. Since we run in
-# File mode, the input files are copied to the directory specified here.
+#specify model location to mindsdb
+os.environ['MINDSDB_STORAGE_PATH'] = model_path
+# now import mindsdb
+from mindsdb import Predictor
+
+# This algorithm has a single channel of input data called 'training'. Input file is copied here
 channel_name='training'
 training_path = os.path.join(input_path, channel_name)
 
@@ -29,27 +32,24 @@ def train():
     print('Starting the training.')
     try:
         # Read in any hyperparameters that the user passed with the training job
-        with open(param_path, 'r') as tc:
-            trainingParams = json.load(tc)
+        #with open(param_path, 'r') as tc:
+        #    trainingParams = json.load(tc)
 
-        # Take the set of files and read them all into a single pandas dataframe
-        input_files = [ os.path.join(training_path, file) for file in os.listdir(training_path) ]
-        if len(input_files) == 0:
+        # Take dataset and  read it into a pandas dataframe
+        dataset = os.listdir(training_path)
+        input_file = os.path.join(training_path, dataset[0])
+        if len(input_file) == 0:
             raise ValueError(('There are no files in {}.\n' +
                               'This usually indicates that the channel ({}) was incorrectly specified,\n' +
                               'the data specification in S3 was incorrectly specified or the role specified\n' +
                               'does not have permission to access the data.').format(training_path, channel_name))
-        raw_data = [ pd.read_csv(file, header=None) for file in input_files ]
-        train_data = pd.concat(raw_data)
-
-        #specify model location to mindsdb
-        os.environ['MINDSDB_STORAGE_PATH'] = model_path
+        train_data = pd.read_csv(input_file) 
 
         # tell mindsDB what we want to learn and from what data
-        Predictor(name='home_rentals_price').learn(
-            to_predict='rental_price', # the column we want to learn to predict given all the data in the file
-            from_data=train_data # the path to the file where we can learn from
-        )       
+        Predictor(name='mdbp').learn(
+            from_data=train_data, # the path to the file where we can learn from
+            to_predict='Class' # the column we want to learn to predict given all the data
+        )              
         print('Training complete.')
     except Exception as e:
         # Write out an error file. This will be returned as the failureReason in the
