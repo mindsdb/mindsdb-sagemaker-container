@@ -2,13 +2,15 @@
 
 import os
 import json
-from mindsdb import Predictor
-
 import flask
 import pandas as pd
 
 #Define the path
 prefix = '/opt/ml/'
+model_path = os.path.join(prefix, 'model')
+os.environ['MINDSDB_STORAGE_PATH'] = model_path
+
+from mindsdb import Predictor
 
 # The flask app for serving predictions
 app = flask.Flask(__name__)
@@ -26,9 +28,17 @@ def ping():
 
 @app.route('/invocations', methods=['POST'])
 def transformation():
+    # Get json data
+    if flask.request.content_type == 'application/json':
+        data = flask.request.json
+        when = json.dumps(data)
+    else:
+        return flask.Response(response='This predictor only supports CSV data', status=415, mimetype='text/plain')
 
-    result = Predictor(name='home_rentals_price').predict(when={'number_of_rooms': 2,'number_of_bathrooms':1, 'sqft': 1190})
+    print('Invoked with {} records'.format(when))
+    result = Predictor(name='mdbp').predict(when=json.loads(when))
 
-    print('The predicted price is ${price} with {conf} confidence'.format(price=result[0]['rental_price'], conf=result[0]['rental_price_confidence']))
-    result = json.dumps(result)
-    return flask.Response(response=result, status=200, mimetype='application/json')
+    print(result[0])
+    # res = json.loads(result.evaluations)
+    res = json.dumps(result[0].as_list())
+    return flask.Response(response=res, status=200, mimetype='application/json')
