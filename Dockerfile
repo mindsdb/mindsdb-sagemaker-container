@@ -18,7 +18,7 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends \
 
 # 2. Here we define all python packages we want to include in our environment.
 RUN wget https://bootstrap.pypa.io/get-pip.py && python3.7 get-pip.py && \
-    pip install --upgrade mindsdb flask gevent gunicorn && \
+    pip install --default-timeout=1000  mindsdb flask gevent gunicorn && \
         rm -rf /root/.cache
 
 # 3. Set some environment variables. PYTHONUNBUFFERED keeps Python from buffering our standard
