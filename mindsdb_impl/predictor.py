@@ -38,7 +38,4 @@ def transformation():
     print('Invoked with {} records'.format(when))
     result = Predictor(name='mdbp').predict(when=json.loads(when))
 
-    print(result[0])
-    # res = json.loads(result.evaluations)
-    res = json.dumps(result[0].as_list())
-    return flask.Response(response=res, status=200, mimetype='application/json')
+    return flask.Response(response=str(result[0]), status=200, mimetype='application/json')
