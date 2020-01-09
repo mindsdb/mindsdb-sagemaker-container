@@ -13,11 +13,11 @@ then
     exit 1
 fi
 
-chmod +x decision_trees/train
-chmod +x decision_trees/serve
+chmod +x mindsdb_impl/train
+chmod +x mindsdb_impl/serve
 
 # Get the account number associated with the current IAM credentials
-account=$(aws sts get-caller-identity --query Account --output text)
+account=$(aws2 sts get-caller-identity --query Account --output text)
 
 if [ $? -ne 0 ]
 then
@@ -26,23 +26,23 @@ fi
 
 
 # Get the region defined in the current configuration (default to us-west-2 if none defined)
-region=$(aws configure get region)
-region=${region:-us-west-2}
+region=$(aws2 configure get region)
+region=${region:-us-east-1}
 
 
 fullname="${account}.dkr.ecr.${region}.amazonaws.com/${image}:latest"
 
 # If the repository doesn't exist in ECR, create it.
 
-aws ecr describe-repositories --repository-names "${image}" > /dev/null 2>&1
+aws2 ecr describe-repositories --repository-names "${image}" > /dev/null 2>&1
 
 if [ $? -ne 0 ]
 then
-    aws ecr create-repository --repository-name "${image}" > /dev/null
+    aws2 ecr create-repository --repository-name "${image}" > /dev/null
 fi
 
 # Get the login command from ECR and execute it directly
-$(aws ecr get-login --region ${region} --no-include-email)
+$(aws2 ecr get-login --region ${region} --no-include-email)
 
 # Build the docker image locally with the image name and then push it to ECR
 # with the full name.
