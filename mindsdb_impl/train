@@ -24,7 +24,7 @@ os.environ['MINDSDB_STORAGE_PATH'] = model_path
 from mindsdb import Predictor
 
 # This algorithm has a single channel of input data called 'training'. Input file is copied here
-channel_name='training'
+channel_name='train'
 training_path = os.path.join(input_path, channel_name)
 
 # The function to execute the training.
@@ -32,10 +32,9 @@ def train():
     print('Starting the training.')
     try:
         # Read in any hyperparameters that the user passed with the training job
-        #with open(param_path, 'r') as tc:
-        #    trainingParams = json.load(tc)
+        with open(param_path, 'r') as tc:
+            trainingParams = json.load(tc)
 
-        # Take dataset and  read it into a pandas dataframe
         dataset = os.listdir(training_path)
         input_file = os.path.join(training_path, dataset[0])
         if len(input_file) == 0:
@@ -43,12 +42,19 @@ def train():
                               'This usually indicates that the channel ({}) was incorrectly specified,\n' +
                               'the data specification in S3 was incorrectly specified or the role specified\n' +
                               'does not have permission to access the data.').format(training_path, channel_name))
+
+        #read predict column from the hyperparameters config
+        to_predict = trainingParams['to_predict']
+        if len(to_predict) == 0:
+            raise ValueError('Please provide the name of the column that you want to predict.')
+
+        # Take dataset and  read it into a pandas dataframe
         train_data = pd.read_csv(input_file) 
 
         # tell mindsDB what we want to learn and from what data
         Predictor(name='mdbp').learn(
             from_data=train_data, # the path to the file where we can learn from
-            to_predict='Class' # the column we want to learn to predict given all the data
+            to_predict=to_predict # the column we want to learn to predict given all the data
         )              
         print('Training complete.')
     except Exception as e:
