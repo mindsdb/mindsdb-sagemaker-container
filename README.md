@@ -1,7 +1,7 @@
-# mindsdb-sagemaker-container
+# MindsDB SageMaker Container
 This example shows how to package MindsDB for use with SageMaker.
 
-SageMaker supports two execution modes: training where the algorithm uses input data to train a new model and serving where the algorithm accepts HTTP requests and uses the previously trained model to do an prediction.
+SageMaker supports two execution modes: training where the algorithm uses input data to train a new model and serving where the algorithm accepts HTTP requests and uses the previously trained model to do a prediction.
 
 ## Build image
 
@@ -10,7 +10,8 @@ Execute the following command to build the image:
 ```sh
 docker build -t mindsdb-sage .
 ```
-Note that mindsdb-sage will be the name of the image.
+
+Note that `mindsdb-sage` will be the name of the image.
 
 ## Test the container locally
 
@@ -43,7 +44,15 @@ And make predictions by adding the file with data that you want to make the pred
 ./predict.sh payload.json
 ```
 
-## Push to Amazon EC2 Container Registry
+## Push the image to Amazon Elastic Container Service
+
+Use the shell script `build-and-push.sh`, to push the latest image to the Amazon Container Services.
+You can run it as:
+```sh
+ ./build-and-push.sh mindsdb-sage 
+```
+The script will look for an AWS EC repository in the default region that you are using, and create a new one if that doesn't exist.
+
 
 ## Model Creation
 
