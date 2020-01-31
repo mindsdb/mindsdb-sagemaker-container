@@ -53,6 +53,48 @@ You can run it as:
 ```
 The script will look for an AWS EC repository in the default region that you are using, and create a new one if that doesn't exist.
 
+## Training Jobs
+When you create a training job, Amazon SageMaker sets up the environment, performs the training, then store the model artifacts in the location you specified when you created the training job.
+
+### Required parameters
+* **Algorithm source**: Choose `Your own algorithm` and provide  the registry path where the mindsdb image is stored in Amazon ECR  `846763053924.dkr.ecr.us-east-1.amazonaws.com/mindsdb_implementation`
+* **Input data configuration**: Choose S3 as data source and provide path to the backet where the dataset is stored e.g
+s3://bucket/path-to-your-data/
+* **Output data configuration**: This would be the location where the model artifacts will be stored on s3 e.g
+s3://bucket/path-to-write-models/
+
+### Add HyperParameters
+ You can use hyperparameters to finely control training. The required parameter for training models with mindsdb is:
+ `to_predict` parameter. That is the column we want to learn to predict given all the data in the file e.g
+ `to_predict = Class`
+ 
+### Starting train job from code(using Estimator)
+You can also use Estimator, an interface for SageMaker training. The Estimator defines how you can use the container to train. This is simple example that includes the required configuration to start training:
+
+```python
+import boto3
+import re
+import os
+import numpy as np
+import pandas as pd
+from sagemaker import get_execution_role
+
+role = get_execution_role()
+account = sess.boto_session.client('sts').get_caller_identity()['Account']
+
+sess = sage.Session()
+region = sess.boto_session.region_name
+image = '{}.dkr.ecr.{}.amazonaws.com/mindsdb_implementation:latest'.format(account, region)
+mindsdb_impl = sage.estimator.Estimator(image,
+                       role, 1, 'ml.m4.xlarge',
+                       output_path="s3://{}/output".format(sess.default_bucket()),
+                       sagemaker_session=sess)
+dataset_location = 's3://bucket/path-to-your-data/'
+mindsdb_impl.fit(dataset_location)
+```
+
+
+
 
 ## Model Creation
 
