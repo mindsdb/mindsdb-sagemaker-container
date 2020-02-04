@@ -44,16 +44,14 @@ def train():
 
         # read predict column from the hyperparameters config
         to_predict = trainingParams['to_predict']
-        model_name = trainingParams['model_name']
-        if len(to_predict) == 0 or len(model_name) == 0:
-            raise ValueError('Please provide the name of the column that you want to predict \n'+,
-                             'and the name of model.')
+        if len(to_predict) == 0:
+            raise ValueError('Please provide the name of the column that you want to predict')
 
         # Take dataset and  read it into a pandas dataframe
         train_data = pd.read_csv(input_file) 
 
         # tell mindsDB what we want to learn and from what data
-        Predictor(name=model_name).learn(
+        Predictor(name='mdbp').learn(
             from_data=train_data,  # the path to the file where we can learn from
             to_predict=to_predict  # the column we want to learn to predict given all the data
         )              

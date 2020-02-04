@@ -3,9 +3,8 @@
 import os
 import json
 import flask
-import pandas as pd
 
-#Define the path
+# Define the path
 prefix = '/opt/ml/'
 model_path = os.path.join(prefix, 'model')
 
@@ -35,10 +34,19 @@ def transformation():
         data = flask.request.json
         when = json.dumps(data)
     else:
-        return flask.Response(response='This predictor only supports CSV data', 
+        return flask.Response(response='This predictor only supports JSON data', 
                               status=415, mimetype='text/plain')
 
     print('Invoked with {} records'.format(when))
     result = Predictor(name='mdbp').predict(when=json.loads(when))
-    print('Result: ', result)
-    return flask.Response(response=str(result[0]), status=200, mimetype='application/json')
+
+    mconfidence = [x['Class_model_confidence'] for x in result]
+    cconfidence = [x['Class_confidence'] for x in result]
+    response = {
+        'prediction': str(result[0]),
+        'model_confidence': mconfidence,
+        'class_confidence': cconfidence
+    }
+
+    print('Response prediction: {}'.format(response['prediction']))
+    return flask.Response(response=json.dumps(response), status=200, mimetype='application/json')
