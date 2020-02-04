@@ -15,14 +15,16 @@ from mindsdb import Predictor
 app = flask.Flask(__name__)
 @app.route('/ping', methods=['GET'])
 def ping():
-    # Check if the predictor was loaded correctly
+    # Check if the predictor was loaded correctly, if not throw error
     try:
-        # mdb = Predictor(name='test_predictor')
-        # mdb.get_model_data('test_predictor')
+        mdb = Predictor(name='mdbp')
+        mdb.get_model_data('mdbp')
+        response = 'Successfully loaded'
         status = 200
-    except:
-        status = 400
-    return flask.Response(response=json.dumps(' '), 
+    except Exception as e:
+        response = str(e)
+        status = 404
+    return flask.Response(response=response, 
                           status=status, mimetype='application/json')
 
 
