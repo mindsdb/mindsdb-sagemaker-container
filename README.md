@@ -1,17 +1,18 @@
 # MindsDB SageMaker Container
-This example shows how to package MindsDB for use with SageMaker.
+This repository contains the MindsDB containers for use with SageMaker.
 
-SageMaker supports two execution modes: training where the algorithm uses input data to train a new model and serving where the algorithm accepts HTTP requests and uses the previously trained model to do a prediction.
+MindsDB container supports two execution modes on SageMaker. Training, where MindsDB uses input data to train a new model and serving where it accepts HTTP requests and uses the previously trained model to do a prediction.
 
-## Build image
+
+## Build and image
 
 Execute the following command to build the image:
 
 ```sh
-docker build -t mindsdb-sage .
+docker build -t mindsdb-impl .
 ```
 
-Note that `mindsdb-sage` will be the name of the image.
+Note that `mindsdb-impl` will be the name of the image.
 
 ## Test the container locally
 
@@ -33,13 +34,16 @@ All of the files under test-dir are mounted into the container and mimics the Sa
 #### Run tests
 To train the model execute train script and specify the tag name of the docker image:
 ```sh
-./train_local.sh mindsdb-sage
+./train_local.sh mindsdb-impl
 ```
+The train script will use the dataset that is located in the `input/data/training/` directory.
+
 Then start the server:
 ```sh
-./serve_local.sh mindsdb-sage
+./serve_local.sh mindsdb-impl
 ```
-And make predictions by adding the file with data that you want to make the predictions for:
+
+And make predictions by specifying the payload file in json format:
 ```sh
 ./predict.sh payload.json
 ```
@@ -49,16 +53,16 @@ And make predictions by adding the file with data that you want to make the pred
 Use the shell script `build-and-push.sh`, to push the latest image to the Amazon Container Services.
 You can run it as:
 ```sh
- ./build-and-push.sh mindsdb-sage 
+ ./build-and-push.sh mindsdb-impl 
 ```
 The script will look for an AWS EC repository in the default region that you are using, and create a new one if that doesn't exist.
 
-## Training Jobs
+## Training 
 When you create a training job, Amazon SageMaker sets up the environment, performs the training, then store the model artifacts in the location you specified when you created the training job.
 
 ### Required parameters
-* **Algorithm source**: Choose `Your own algorithm` and provide  the registry path where the mindsdb image is stored in Amazon ECR  `846763053924.dkr.ecr.us-east-1.amazonaws.com/mindsdb_implementation`
-* **Input data configuration**: Choose S3 as data source and provide path to the backet where the dataset is stored e.g
+* **Algorithm source**: Choose `Your own algorithm` and provide  the registry path where the mindsdb image is stored in Amazon ECR  `846763053924.dkr.ecr.us-east-1.amazonaws.com/mindsdb_impl`
+* **Input data configuration**: Choose S3 as a data source and provide path to the backet where the dataset is stored e.g
 s3://bucket/path-to-your-data/
 * **Output data configuration**: This would be the location where the model artifacts will be stored on s3 e.g
 s3://bucket/path-to-write-models/
@@ -67,9 +71,51 @@ s3://bucket/path-to-write-models/
  You can use hyperparameters to finely control training. The required parameter for training models with mindsdb is:
  `to_predict` parameter. That is the column we want to learn to predict given all the data in the file e.g
  `to_predict = Class`
- 
-### Starting train job from code(using Estimator)
-You can also use Estimator, an interface for SageMaker training. The Estimator defines how you can use the container to train. This is simple example that includes the required configuration to start training:
+
+## Inference
+You can also create a model, endpoint configuration and endpoint using [AWS Management Console ](https://console.aws.amazon.com/sagemaker/home). 
+
+### Create model
+Choose the role that has the AmazonSageMakerFullAccess IAM policy attached.
+Next, you need to provide the location of the model artifacts and inference code.
+* **Location of inference code image**: Location to the ECR image `846763053924.dkr.ecr.us-east-1.amazonaws.com/mindsdb_impl:latest`
+* **Location of model artifacts - optional** Path to the s3 where the models are saved. This is the same location that you provide on train job `s3://bucket/path-to-write-models/`
+
+### Create endpoint  
+First, create an endpoint configuration. In the configuration, specify which models to deploy and hardware requirements for each. The required option is `Endpoint configuration name` and then add the previously created model. Then go to `Create and configure endpoint`, add the `Endpoint name`, and `Attach endpoint configuration`. Usually, it would take around few minutes to start the instance and create endpoint.
+
+### Call endpoint
+When the endpoint is in `InService` status, you can create python script or notebook from which you can get the predictions. 
+
+```python
+import boto3
+# Set below parameters
+bucket = 'mindsdb-sagemaker'
+endpointName = 'mindsdb-impl'
+
+params = '{"Plasma glucose concentration": 199, "Diastolic blood pressure": 84,"Age": 54'}
+# Talk to SageMaker
+client = boto3.client('sagemaker-runtime')
+response = client.invoke_endpoint(
+    EndpointName=endpointName,
+    Body=params,
+    ContentType='application/json',
+    Accept='Accept'
+)
+print(response['Body'].read().decode('ascii'))
+//mindsdb prediction response
+{
+"prediction": "* We are 96% confident the value of "Class" is positive.", 
+ "model_confidence": [0.8310450414816538], 
+ "class_confidence": [0.964147493532568]
+}
+```
+
+## Using the SageMaker Python SDK
+SageMaker provides Estimator implementation that runs SageMaker compatible custom Docker containers, enabling our own MindsDB implementation.
+
+### Starting train job 
+he Estimator defines how you can use the container to train. This is simple example that includes the required configuration to start training:
 
 ```python
 import boto3
@@ -84,7 +130,7 @@ account = sess.boto_session.client('sts').get_caller_identity()['Account']
 
 sess = sage.Session()
 region = sess.boto_session.region_name
-image = '{}.dkr.ecr.{}.amazonaws.com/mindsdb_implementation:latest'.format(account, region)
+image = '{}.dkr.ecr.{}.amazonaws.com/mindsdb-impl:latest'.format(account, region)
 mindsdb_impl = sage.estimator.Estimator(image,
                        role, 1, 'ml.m4.xlarge',
                        output_path="s3://{}/output".format(sess.default_bucket()),
@@ -92,12 +138,26 @@ mindsdb_impl = sage.estimator.Estimator(image,
 dataset_location = 's3://bucket/path-to-your-data/'
 mindsdb_impl.fit(dataset_location)
 ```
+### Deploy model and create endpoint 
+The model can be deployed to SageMaker by calling deploy method.
+```python
+predictor = mindsdb.deploy(1, 'ml.m4.xlarge', endpoint_name='mindsdb-impl')
+```
+The deploy method configures the Amazon SageMaker hosting services endpoint, deploy model and launches the endpoint to host the model. It returns RealTimePredictor object, from which you can get the predictions from.
+```python
+when = json.dumps({"Plasma glucose concentration": 162, "Diastolic blood pressure": 84,"Age": 54})
+print(predictor.predict(when).decode('utf-8'))
+```
+The predict endpoint only accepts json data, so make sure to provide correct format.
+### Delete the  endpoint 
+Don't forget to delete the endpoint when you are not using it.
+```python
+mindsdb.sagemaker_session.delete_endpoint('mindsdb-impl')
+```
 
-
-
-
-## Model Creation
-
-## Endpoint configuration
-
-## Notebook
+## Other usefull resources
+ * [ Explainable AutoML with MindsDB](https://mindsdb.github.io/mindsdb/docs/basic-mindsdb)
+ * [Getting started with Docker](https://docs.docker.com/get-started/)
+ * [Amazon SageMaker examples](https://github.com/awslabs/amazon-sagemaker-examples)
+    *  [Bring-your-own Algorithm Sample](https://github.com/awslabs/amazon-sagemaker-examples/tree/master/advanced_functionality/scikit_bring_your_own/container)
+ * [Amazon SageMaker Python SDK](https://sagemaker.readthedocs.io/en/stable/)
