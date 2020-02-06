@@ -33,14 +33,13 @@ def transformation():
 
     # Get json data
     if flask.request.content_type == 'application/json':
-        data = flask.request.json
-        when = json.dumps(data)
+        when = flask.request.json
     else:
         return flask.Response(response='This predictor only supports JSON data', 
                               status=415, mimetype='text/plain')
 
     print('Invoked with {} records'.format(when))
-    result = Predictor(name='mdbp').predict(when=json.loads(when))
+    result = Predictor(name='mdbp').predict(when=when)
 
     mconfidence = [x['Class_model_confidence'] for x in result]
     cconfidence = [x['Class_confidence'] for x in result]
