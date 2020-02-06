@@ -52,6 +52,9 @@ def train():
 
         # tell mindsDB what we want to learn and from what data
         Predictor(name='mdbp').learn(
+            sample_margin_of_error=0.01, # max expected difference
+            disable_optional_analysis=False, # make learning faster
+            equal_accuracy_for_all_output_categories=True, # unbalanced target vars equally important 
             from_data=train_data,  # the path to the file where we can learn from
             to_predict=to_predict  # the column we want to learn to predict given all the data
         )              
