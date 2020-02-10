@@ -6,6 +6,7 @@ import json
 import sys
 import traceback
 import pandas as pd
+import mindsdb
 
 # These are the paths to where SageMaker mounts interesting things in your container.
 
@@ -16,10 +17,6 @@ output_path = os.path.join(prefix, 'output')
 model_path = os.path.join(prefix, 'model')
 param_path = os.path.join(prefix, 'input/config/hyperparameters.json')
 
-# specify model location to mindsdb
-os.environ['MINDSDB_STORAGE_PATH'] = model_path
-# now import mindsdb
-from mindsdb import Predictor
 
 # This algorithm has a single channel of input data called 'training'. Input file is copied here
 channel_name = 'training'
@@ -50,11 +47,14 @@ def train():
         # Take dataset and  read it into a pandas dataframe
         train_data = pd.read_csv(input_file) 
 
+        # specify model location to mindsdb
+        mindsdb.CONFIG.MINDSDB_STORAGE_PATH = model_path
+        
         # tell mindsDB what we want to learn and from what data
-        Predictor(name='mdbp').learn(
-            sample_margin_of_error=0.01, # max expected difference
-            disable_optional_analysis=False, # make learning faster
-            equal_accuracy_for_all_output_categories=True, # unbalanced target vars equally important 
+        mindsdb.Predictor(name='mdbp').learn(
+            sample_margin_of_error=0.01,  # max expected difference
+            disable_optional_analysis=False,  # make learning faster
+            equal_accuracy_for_all_output_categories=True,  # unbalanced target vars equally important 
             from_data=train_data,  # the path to the file where we can learn from
             to_predict=to_predict  # the column we want to learn to predict given all the data
         )              

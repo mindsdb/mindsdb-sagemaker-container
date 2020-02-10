@@ -10,16 +10,16 @@ MindsDB container supports two execution modes on SageMaker. Training, where Min
    * [Run tests](#run-tests)
  * [Push the image to ECS](#push-the-image-to-amazon-elastic-container-service)
  * [Training](#training)
-    * [Required parameters](#required-parameters)
-    * [Add HyperParameters](#add-hyperparameters)
+   * [Required parameters](#required-parameters)
+   * [Add HyperParameters](#add-hyperparameters)
  * [Inference](#inference)
    * [Create model](#create-model)
    * [Create endpoint](#create-endpoint)
    * [Call endpoint](#call-endpoint)
  * [Using the SageMaker Python SDK](#using-the-sagemaker-python-sdk)
-    * [Starting train job ](#starting-train-job)
-    * [Deploy model and create endpoint ](#deploy-and-create-endpoint)
-    * [Delete the endpoint](#delete-the-endpoint)
+   * [Starting train job ](#starting-train-job)
+   * [Deploy model and create endpoint](#deploy-model-and-create-endpoint)
+   * [Delete the endpoint](#delete-the-endpoint)
  * [Other helpful resources](#other-usefull-resources)
 
 ## Build an image
@@ -167,7 +167,7 @@ when = json.dumps({"Plasma glucose concentration": 162, "Diastolic blood pressur
 print(predictor.predict(when).decode('utf-8'))
 ```
 The predict endpoint only accepts json data, so make sure to provide correct format.
-### Delete the  endpoint 
+### Delete the endpoint 
 Don't forget to delete the endpoint when you are not using it.
 ```python
 mindsdb.sagemaker_session.delete_endpoint('mindsdb-impl')

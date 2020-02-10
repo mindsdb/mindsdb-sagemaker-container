@@ -4,7 +4,7 @@ import os
 import json
 import flask
 import pandas as pd
-from io import StringIO
+from io import StringIO, BytesIO
 import mindsdb
 # Define the path
 prefix = '/opt/ml/'
@@ -36,27 +36,28 @@ def transformation():
     mindsdb.CONFIG.MINDSDB_STORAGE_PATH = model_path
     # Get json data
     if flask.request.content_type == 'application/json':
-        when = flask.request.json
-        when_data = None
-        print('Invoked with {} records'.format(when))
+        req = flask.request.json
+        when_data = pd.DataFrame(req)
+        print('Invoked with {} records'.format(when_data))
     elif flask.request.content_type == 'text/csv':
         req = flask.request.data.decode('utf-8')
-        print(req)
         s = StringIO(req) 
-        when = {}      
         when_data = pd.read_csv(s, header=0)
+        print('Invoked with {} records'.format(when_data))
+    elif flask.request.content_type in ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']:
+        req = flask.request.data
+        s = BytesIO(req) 
+        when_data = pd.read_excel(s, header=0)
         print('Invoked with {} records'.format(when_data))
     else:
         return flask.Response(response='This predictor only supports CSV and JSON data', 
                               status=415, mimetype='text/plain')
 
-    result = mindsdb.Predictor(name='mdbp').predict(when=when, when_data=when_data)
+    result = mindsdb.Predictor(name='mdbp').predict(when_data=when_data)
 
-    mconfidence = [x['Class_model_confidence'] for x in result]
     cconfidence = [x['Class_confidence'] for x in result]
     response = {
         'prediction': str(result[0]),
-        'model_confidence': mconfidence,
         'class_confidence': cconfidence
     }
 
