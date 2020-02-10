@@ -1,5 +1,4 @@
 #!/usr/bin/env python3.7
-
 from __future__ import print_function
 import os
 import json
@@ -8,17 +7,16 @@ import traceback
 import pandas as pd
 import mindsdb
 
-# These are the paths to where SageMaker mounts interesting things in your container.
-
+# These are the paths to where SageMaker mounts data in your container.
 prefix = '/opt/ml/'
-
 input_path = prefix + 'input/data'
 output_path = os.path.join(prefix, 'output')
 model_path = os.path.join(prefix, 'model')
 param_path = os.path.join(prefix, 'input/config/hyperparameters.json')
 
 
-# This algorithm has a single channel of input data called 'training'. Input file is copied here
+# This algorithm has a single channel of input data called 'training'.
+# Input file is copied here
 channel_name = 'training'
 training_path = os.path.join(input_path, channel_name)
 
@@ -27,7 +25,7 @@ training_path = os.path.join(input_path, channel_name)
 def train():
     print('Starting the training.')
     try:
-        # Read in any hyperparameters that the user passed with the training job
+        # Read in hyperparameters that the user passed with the training job
         with open(param_path, 'r') as tc:
             trainingParams = json.load(tc)
 
@@ -35,9 +33,12 @@ def train():
         input_file = os.path.join(training_path, dataset[0])
         if len(input_file) == 0:
             raise ValueError(('There are no files in {}.\n' +
-                              'This usually indicates that the channel ({}) was incorrectly specified,\n' +
-                              'the data specification in S3 was incorrectly specified or the role specified\n' +
-                              'does not have permission to access the data.').format(training_path, channel_name))
+                              'This usually indicates that the channel\
+                              ({}) was incorrectly specified,\n' +
+                              'the data specification in S3 was incorrectly\
+                               specified or the role specified\n' +
+                              'does not have permission to access the data.'
+                              ).format(training_path, channel_name))
 
         # read predict column from the hyperparameters config
         to_predict = trainingParams['to_predict']
@@ -52,27 +53,34 @@ def train():
         
         # tell mindsDB what we want to learn and from what data
         mindsdb.Predictor(name='mdbp').learn(
-            sample_margin_of_error=0.01,  # max expected difference
-            disable_optional_analysis=False,  # make learning faster
-            equal_accuracy_for_all_output_categories=True,  # unbalanced target vars equally important 
-            from_data=train_data,  # the path to the file where we can learn from
-            to_predict=to_predict  # the column we want to learn to predict given all the data
+            # max expected difference
+            sample_margin_of_error=0.01,
+            # make learning faster
+            disable_optional_analysis=False,
+            # unbalanced target vars equally important
+            equal_accuracy_for_all_output_categories=True,
+            # the path to the file where we can learn from
+            from_data=train_data,
+            # the column we want to learn to predict given all the data
+            to_predict=to_predict
         )              
         print('Training complete.')
     except Exception as e:
-        # Write out an error file. This will be returned as the failureReason in the
-        # DescribeTrainingJob result.
+        # Write out an error file. This will be returned as the failureReason
+        # in the DescribeTrainingJob result.
         trc = traceback.format_exc()
         with open(os.path.join(output_path, 'failure'), 'w') as s:
             s.write('Exception during training: ' + str(e) + '\n' + trc)
-        # Printing this causes the exception to be in the training job logs, as well.
-        print('Exception during training: ' + str(e) + '\n' + trc, file=sys.stderr)
+
+        # Printing this causes the exception to be in the training job logs.
+        print('Exception during training: '
+              + str(e) + '\n' + trc, file=sys.stderr)
+
         # A non-zero exit code causes the training job to be marked as Failed.
         sys.exit(255)
 
 
 if __name__ == '__main__':
     train()
-
     # A zero exit code causes the job to be marked a Succeeded.
     sys.exit(0)

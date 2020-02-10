@@ -1,4 +1,4 @@
-# This is the file that implements a flask server to do inferences. 
+# This is the file that implements a flask server to do inferences.
 
 import os
 import json
@@ -24,7 +24,7 @@ def ping():
     except Exception as e:
         response = str(e)
         status = 404
-    return flask.Response(response=response, 
+    return flask.Response(response=response,
                           status=status, mimetype='application/json')
 
 
@@ -34,32 +34,33 @@ def transformation():
     # Avoid mindsdb storage path write access
     mindsdb.CONFIG.SAGEMAKER = 'True'
     mindsdb.CONFIG.MINDSDB_STORAGE_PATH = model_path
-    # Get json data
+
+    excel_mime = ['application/vnd.ms-excel',
+                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
     if flask.request.content_type == 'application/json':
         req = flask.request.json
         when_data = pd.DataFrame(req)
-        print('Invoked with {} records'.format(when_data))
     elif flask.request.content_type == 'text/csv':
         req = flask.request.data.decode('utf-8')
-        s = StringIO(req) 
+        s = StringIO(req)
         when_data = pd.read_csv(s, header=0)
-        print('Invoked with {} records'.format(when_data))
-    elif flask.request.content_type in ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']:
+    elif flask.request.content_type in excel_mime:
         req = flask.request.data
-        s = BytesIO(req) 
+        s = BytesIO(req)
         when_data = pd.read_excel(s, header=0)
-        print('Invoked with {} records'.format(when_data))
     else:
-        return flask.Response(response='This predictor only supports CSV and JSON data', 
+        return flask.Response(response='This predictor supports JSON,CSV and Excel data',
                               status=415, mimetype='text/plain')
 
+    print('Invoked with {} records'.format(when_data))
     result = mindsdb.Predictor(name='mdbp').predict(when_data=when_data)
 
     cconfidence = [x['Class_confidence'] for x in result]
     response = {
         'prediction': str(result[0]),
-        'class_confidence': cconfidence
+        'class_confidence': cconfidence[-1]
     }
 
     print('Response prediction: {}'.format(response['prediction']))
-    return flask.Response(response=json.dumps(response), status=200, mimetype='application/json')
+    return flask.Response(response=json.dumps(response),
+                          status=200, mimetype='application/json')
