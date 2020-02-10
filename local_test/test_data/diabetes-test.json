@@ -1,0 +1,112 @@
+[
+    {
+      "Number of times pregnant": 11,
+      "Plasma glucose concentration": 138,
+      "Diastolic blood pressure": 76,
+      "Triceps skin fold thickness": 0,
+      "2-Hour serum insulin": 0,
+      "Body mass index": 33.2,
+      "Diabetes pedigree function": 0.42,
+      "Age": 35,
+      "Class": "negative"
+    },
+    {
+      "Number of times pregnant": 9,
+      "Plasma glucose concentration": 102,
+      "Diastolic blood pressure": 76,
+      "Triceps skin fold thickness": 37,
+      "2-Hour serum insulin": 0,
+      "Body mass index": 32.9,
+      "Diabetes pedigree function": 0.665,
+      "Age": 46,
+      "Class": "positive"
+    },
+    {
+      "Number of times pregnant": 2,
+      "Plasma glucose concentration": 90,
+      "Diastolic blood pressure": 68,
+      "Triceps skin fold thickness": 42,
+      "2-Hour serum insulin": 0,
+      "Body mass index": 38.2,
+      "Diabetes pedigree function": 0.503,
+      "Age": 27,
+      "Class": "positive"
+    },
+    {
+      "Number of times pregnant": 0,
+      "Plasma glucose concentration": 100,
+      "Diastolic blood pressure": 88,
+      "Triceps skin fold thickness": 60,
+      "2-Hour serum insulin": 110,
+      "Body mass index": 46.8,
+      "Diabetes pedigree function": 0.962,
+      "Age": 31,
+      "Class": "negative"
+    },
+    {
+      "Number of times pregnant": 0,
+      "Plasma glucose concentration": 146,
+      "Diastolic blood pressure": 82,
+      "Triceps skin fold thickness": 0,
+      "2-Hour serum insulin": 0,
+      "Body mass index": 40.5,
+      "Diabetes pedigree function": 1.781,
+      "Age": 44,
+      "Class": "negative"
+    },
+    {
+      "Number of times pregnant": 0,
+      "Plasma glucose concentration": 105,
+      "Diastolic blood pressure": 64,
+      "Triceps skin fold thickness": 41,
+      "2-Hour serum insulin": 142,
+      "Body mass index": 41.5,
+      "Diabetes pedigree function": 0.173,
+      "Age": 22,
+      "Class": "negative"
+    },
+    {
+      "Number of times pregnant": 2,
+      "Plasma glucose concentration": 84,
+      "Diastolic blood pressure": 0,
+      "Triceps skin fold thickness": 0,
+      "2-Hour serum insulin": 0,
+      "Body mass index": 0,
+      "Diabetes pedigree function": 0.304,
+      "Age": 21,
+      "Class": "negative"
+    },
+    {
+      "Number of times pregnant": 3,
+      "Plasma glucose concentration": 80,
+      "Diastolic blood pressure": 82,
+      "Triceps skin fold thickness": 31,
+      "2-Hour serum insulin": 70,
+      "Body mass index": 34.2,
+      "Diabetes pedigree function": 1.292,
+      "Age": 27,
+      "Class": "positive"
+    },
+    {
+      "Number of times pregnant": 10,
+      "Plasma glucose concentration": 162,
+      "Diastolic blood pressure": 84,
+      "Triceps skin fold thickness": 0,
+      "2-Hour serum insulin": 0,
+      "Body mass index": 27.7,
+      "Diabetes pedigree function": 0.182,
+      "Age": 54,
+      "Class": "negative"
+    },
+    {
+      "Number of times pregnant": 1,
+      "Plasma glucose concentration": 199,
+      "Diastolic blood pressure": 76,
+      "Triceps skin fold thickness": 43,
+      "2-Hour serum insulin": 0,
+      "Body mass index": 42.9,
+      "Diabetes pedigree function": 1.394,
+      "Age": 22,
+      "Class": "positiv"
+    }
+  ]
