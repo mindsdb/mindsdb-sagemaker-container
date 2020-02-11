@@ -42,10 +42,10 @@ All of the files for testing the setup are located inside the local_test directo
 * `serve_local.sh`: Instantiate the container configured for serving.
 * `predict.sh`: Run predictions against a locally instantiated server.
 * `test-dir`:  This directory is mounted in the container.
-* `payload.json`: Sample data for `when` clause that is used for predictions. Note that each key is the name of an input column and each value is the value for that cell in the column.
+*  `test_data`: This directory contains a few tabular format datasets used for getting the predictions.
 * `input/data/training/file.csv`: The training data.
 * `model`: The directory where mindsdb writes the model files.
-* `output`: The directory where mindsdb can write its success or failure file.
+* `output`: The directory where mindsdb can write its failure file.
 
 All of the files under test-dir are mounted into the container and mimics the SageMaker directory structure.
 
