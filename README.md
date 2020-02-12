@@ -34,18 +34,19 @@ Note that `mindsdb-impl` will be the name of the image.
 
 ## Test the container locally
 
-All of the files for testing the setup are located inside the local_test directory.
+All of the files for testing the setup are located inside the `local_test` directory.
 
 #### Test directory
 
 * `train_local.sh`: Instantiate the container configured for training.
 * `serve_local.sh`: Instantiate the container configured for serving.
 * `predict.sh`: Run predictions against a locally instantiated server.
-* `test-dir`:  This directory is mounted in the container.
-*  `test_data`: This directory contains a few tabular format datasets used for getting the predictions.
+* `test-dir`:  This subdirectory is mounted in the container.
+* `test_data`: This subdirectory contains a few tabular format datasets used for getting the predictions.
 * `input/data/training/file.csv`: The training data.
 * `model`: The directory where mindsdb writes the model files.
 * `output`: The directory where mindsdb can write its failure file.
+* `call.py`: This cli can be used for testing the deployed model on SageMaker endpoint 
 
 All of the files under test-dir are mounted into the container and mimics the SageMaker directory structure.
 
@@ -107,26 +108,31 @@ When the endpoint is in `InService` status, you can create python script or note
 
 ```python
 import boto3
-# Set below parameters
-bucket = 'mindsdb-sagemaker'
+
 endpointName = 'mindsdb-impl'
 
-params = '{"Plasma glucose concentration": 199, "Diastolic blood pressure": 84,"Age": 54'}
+# read test dataset
+with open('diabetest-test.csv', 'r') as reader:
+        payload = reader.read()
 # Talk to SageMaker
 client = boto3.client('sagemaker-runtime')
 response = client.invoke_endpoint(
     EndpointName=endpointName,
-    Body=params,
-    ContentType='application/json',
+    Body=payload,
+    ContentType='text/csv',
     Accept='Accept'
 )
 print(response['Body'].read().decode('ascii'))
 //mindsdb prediction response
 {
 "prediction": "* We are 96% confident the value of "Class" is positive.", 
- "model_confidence": [0.8310450414816538], 
  "class_confidence": [0.964147493532568]
 }
+```
+
+Or you can use call.py cli located under `local_test` e.g:
+```python
+python3 call.py --endpoint mindsdb-impl --dataset test_data/diabetes-test.json --content-type application/json
 ```
 
 ## Using the SageMaker Python SDK
@@ -163,10 +169,11 @@ predictor = mindsdb.deploy(1, 'ml.m4.xlarge', endpoint_name='mindsdb-impl')
 ```
 The deploy method configures the Amazon SageMaker hosting services endpoint, deploy model and launches the endpoint to host the model. It returns RealTimePredictor object, from which you can get the predictions from.
 ```python
-when = json.dumps({"Plasma glucose concentration": 162, "Diastolic blood pressure": 84,"Age": 54})
-print(predictor.predict(when).decode('utf-8'))
+with open('diabetest-test.csv', 'r') as reader:
+        when_data = reader.read()
+print(predictor.predict(when_data).decode('utf-8'))
 ```
-The predict endpoint only accepts json data, so make sure to provide correct format.
+The predict endpoint accepts test datasets in CSV, Json, Excel data formats.
 ### Delete the endpoint 
 Don't forget to delete the endpoint when you are not using it.
 ```python
