@@ -8,6 +8,7 @@ MAINTAINER mindsdb
 # 1. Define the packages required for runing mindsdb. 
 RUN apt-get -y update && apt-get install -y --no-install-recommends \
          wget \
+         git \
          build-essential \
          python3.7 \
          python3.7-dev \
@@ -17,8 +18,8 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. Here we define all python packages we want to include in our environment.
-RUN wget https://bootstrap.pypa.io/get-pip.py && python3.7 get-pip.py && \
-    pip install --default-timeout=1000  mindsdb flask gevent gunicorn && \
+RUN wget https://bootstrap.pypa.io/get-pip.py && python3.7 get-pip.py &&  \
+    pip install  flask gevent gunicorn mindsdb --default-timeout=1000 --no-cache-dir && \
         rm -rf /root/.cache
 
 # 3. Set some environment variables. PYTHONUNBUFFERED keeps Python from buffering our standard
