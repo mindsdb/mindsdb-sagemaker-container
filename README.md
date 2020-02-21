@@ -142,11 +142,6 @@ SageMaker provides Estimator implementation that runs SageMaker compatible custo
 he Estimator defines how you can use the container to train. This is simple example that includes the required configuration to start training:
 
 ```python
-import boto3
-import re
-import os
-import numpy as np
-import pandas as pd
 import sagemaker as sage
 
 #Add AmazonSageMaker Execution role here
@@ -169,18 +164,20 @@ mindsdb_impl = sage.estimator.Estimator(image,
 dataset_location = 's3://mdb-sagemaker/diabetes.csv'
 mindsdb_impl.fit(dataset_location)
 ```
+
 ### Deploy model and create endpoint 
 The model can be deployed to SageMaker by calling deploy method.
 ```python
-predictor = mindsdb.deploy(1, 'ml.m4.xlarge', endpoint_name='mindsdb-impl')
+predictor = mindsdb_impl.deploy(1, 'ml.m4.xlarge', endpoint_name='mindsdb-impl')
 ```
 The deploy method configures the Amazon SageMaker hosting services endpoint, deploy model and launches the endpoint to host the model. It returns RealTimePredictor object, from which you can get the predictions from.
 ```python
-with open('diabetest-test.csv', 'r') as reader:
+with open('test_data/diabetes-test.csv', 'r') as reader:
         when_data = reader.read()
 print(predictor.predict(when_data).decode('utf-8'))
 ```
 The predict endpoint accepts test datasets in CSV, Json, Excel data formats.
+
 ### Delete the endpoint 
 Don't forget to delete the endpoint when you are not using it.
 ```python
