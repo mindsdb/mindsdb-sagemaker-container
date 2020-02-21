@@ -1,0 +1,1 @@
+To run `call.py` or `sage_sdk.py` some of the requirements needs to be installed. Run `pip install -r requirements.txt` before using them.

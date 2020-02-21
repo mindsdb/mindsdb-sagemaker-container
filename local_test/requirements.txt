@@ -1,0 +1,4 @@
+sagemaker
+argcomplete
+argparse
+boto3
