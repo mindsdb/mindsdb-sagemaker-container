@@ -147,19 +147,26 @@ import re
 import os
 import numpy as np
 import pandas as pd
-from sagemaker import get_execution_role
+import sagemaker as sage
 
-role = get_execution_role()
-account = sess.boto_session.client('sts').get_caller_identity()['Account']
+#Add AmazonSageMaker Execution role here
+role = "arn:aws:iam:"
 
 sess = sage.Session()
+account = sess.boto_session.client('sts').get_caller_identity()['Account']
+bucket_path = "s3://mdb-sagemaker/models/"
 region = sess.boto_session.region_name
-image = '{}.dkr.ecr.{}.amazonaws.com/mindsdb-impl:latest'.format(account, region)
+image = '{}.dkr.ecr.{}.amazonaws.com/mindsdb_lts:latest'.format(account, region)
+
+#Hyperparameters to_predict is required for MindsDB container
 mindsdb_impl = sage.estimator.Estimator(image,
                        role, 1, 'ml.m4.xlarge',
-                       output_path="s3://{}/output".format(sess.default_bucket()),
-                       sagemaker_session=sess)
-dataset_location = 's3://bucket/path-to-your-data/'
+                       output_path=bucket_path,
+                       sagemaker_session=sess,
+                       base_job_name="mindsdb-lts-sdk",
+                       hyperparameters={"to_predict": "Class"})
+
+dataset_location = 's3://mdb-sagemaker/diabetes.csv'
 mindsdb_impl.fit(dataset_location)
 ```
 ### Deploy model and create endpoint 
