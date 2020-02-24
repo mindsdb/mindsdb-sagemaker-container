@@ -181,7 +181,7 @@ The predict endpoint accepts test datasets in CSV, Json, Excel data formats.
 ### Delete the endpoint 
 Don't forget to delete the endpoint when you are not using it.
 ```python
-mindsdb.sagemaker_session.delete_endpoint('mindsdb-impl')
+sess.delete_endpoint('mindsdb-impl')
 ```
 
 ## Other usefull resources
