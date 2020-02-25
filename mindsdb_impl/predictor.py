@@ -11,6 +11,29 @@ prefix = '/opt/ml/'
 model_path = os.path.join(prefix, 'model')
 
 
+def parse_data(content_type, data):
+    '''
+    Get the request content type and return data as DataFrame object
+    '''
+    excel_mime = ['application/vnd.ms-excel',
+                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+
+    if content_type == 'application/json':
+        req = data.json
+        when_data = pd.DataFrame(req)
+    elif content_type == 'text/csv':
+        req = data.data.decode('utf-8')
+        s = StringIO(req)
+        when_data = pd.read_csv(s, header=0)
+    elif content_type in excel_mime:
+        req = data.data
+        s = BytesIO(req)
+        when_data = pd.read_excel(s, header=0)
+    else:
+        raise ValueError
+    return when_data
+
+
 # The flask app for serving predictions
 app = flask.Flask(__name__)
 @app.route('/ping', methods=['GET'])
@@ -35,20 +58,9 @@ def transformation():
     mindsdb.CONFIG.SAGEMAKER = 'True'
     mindsdb.CONFIG.MINDSDB_STORAGE_PATH = model_path
 
-    excel_mime = ['application/vnd.ms-excel',
-                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
-    if flask.request.content_type == 'application/json':
-        req = flask.request.json
-        when_data = pd.DataFrame(req)
-    elif flask.request.content_type == 'text/csv':
-        req = flask.request.data.decode('utf-8')
-        s = StringIO(req)
-        when_data = pd.read_csv(s, header=0)
-    elif flask.request.content_type in excel_mime:
-        req = flask.request.data
-        s = BytesIO(req)
-        when_data = pd.read_excel(s, header=0)
-    else:
+    try:
+        when_data = parse_data(flask.request.content_type, flask.request)
+    except ValueError:
         return flask.Response(response='This predictor supports JSON,CSV and Excel data',
                               status=415, mimetype='text/plain')
 
